@@ -11,13 +11,14 @@ import pandas as pd
 
 #importing the data set
 dataset = pd.read_excel('sample_production_data.xlsx')
+print("Bag of Words | ANN | Size of the Dataset ", len(dataset))
 
 # ------ Processing the Data -------
 
 # Processing the domain names (text)
 import re
 corpus = []
-for i in range(0,16652):
+for i in range(0,number_of_obs):
     domains = re.sub('[.]', ' ', dataset['Domain'][i]);
     domains = domains.lower()
     domains = domains.split()
@@ -38,7 +39,6 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, rando
 # ------ Making the ANN model -------
 
 # Importing the Keras libraries and packages
-import keras
 from keras.models import Sequential
 from keras.layers import Dense
 
@@ -58,26 +58,32 @@ classifier.add(Dense(output_dim = 1, init =  'uniform', activation = 'sigmoid'))
 classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
 
 # Fitting the ANN to the Training set
-classifier.fit(X_train, Y_train, batch_size = 32, epochs = 100)
+classifier.fit(X_train, Y_train, batch_size = 32, epochs = 1)
 
 
 # ------ Evaluation -------
 
 # Predicting the Test set results
 Y_pred = classifier.predict(X_test)
+Y_pred = (Y_pred > 0.5)
 
 # Making the cufusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(Y_test, Y_pred)
+print("Confusion Matrix:\n", cm)
+
+# Knowing accuracy result
+from sklearn.metrics import accuracy_score
+print("Accuracy: ", accuracy_score(Y_test, Y_pred))
 
 # Measiring F1 Score
 from sklearn.metrics import f1_score
-print(f1_score(Y_test, Y_pred, average='binary'))
+print("F1: ", f1_score(Y_test, Y_pred, average='binary'))
 
 # Measuring precision score
 from sklearn.metrics import precision_score
-print(precision_score(Y_test, Y_pred, average='binary'))
+print("Precison: ", precision_score(Y_test, Y_pred, average='binary'))
 
 # Measuring recall score
 from sklearn.metrics import recall_score
-print(recall_score(Y_test, Y_pred, average='binary'))
+print("Recall: ", recall_score(Y_test, Y_pred, average='binary'))

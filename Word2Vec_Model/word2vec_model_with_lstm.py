@@ -12,25 +12,30 @@ import numpy as np
 import gensim
 
 #importing the data set
-dataset = pd.read_excel('sample_production_data.xlsx')
+dataset = pd.read_csv('sample_production_data_97K.csv')
 
 
 # ------ Processing the Data -------
 
 # Processing the domain names (text)
 import re
+number_of_words = 0
+number_of_obs = len(dataset)
 corpus = []
-for i in range(0,16652):
+
+for i in range(0,number_of_obs):
     domains = re.sub('[.]', ' ', dataset['Domain'][i]);
     domains = domains.lower()
     domains = domains.split()
     #domains = ' '.join(domains)
     corpus.append(domains)
-    
+    if (len(domains) > number_of_words):
+        number_of_words = len(domains)
+
 
 # Creating the Word2Vec model
 word_model = gensim.models.Word2Vec(corpus, min_count=1, size=100, 
-                                    window=3, sg = 1, iter=10)
+                                    window=number_of_words, sg = 1, iter=10)
 pretrained_weights = word_model.wv.syn0
 vocab_size, emdedding_size = pretrained_weights.shape
 
@@ -43,7 +48,7 @@ def idx2word(idx):
   return word_model.wv.index2word[idx]
 
 Y = dataset.iloc[:,1].values
-X = np.zeros([len(corpus), 5], dtype=np.int32)
+X = np.zeros([len(corpus), number_of_words], dtype=np.int32)
 for i, sentence in enumerate(corpus):
     #print(sentence)
     for t, word in enumerate(sentence):
@@ -52,7 +57,6 @@ for i, sentence in enumerate(corpus):
 # Spliting the dataset into the Training and Test Set
 from sklearn.model_selection import train_test_split
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state = 0)
-
 
 
 # ------ Making the LSTM model -------
@@ -85,19 +89,25 @@ classifier.fit(X_train, Y_train, batch_size = 32, epochs = 10)
 
 # Predicting the Test set results
 Y_pred = classifier.predict(X_test)
+Y_pred = (Y_pred > 0.5)
 
 # Making the cufusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(Y_test, Y_pred)
+print("Confusion Matrix:\n", cm)
+
+# Knowing accuracy result
+from sklearn.metrics import accuracy_score
+print("Accuracy: ", accuracy_score(Y_test, Y_pred))
 
 # Measiring F1 Score
 from sklearn.metrics import f1_score
-print(f1_score(Y_test, Y_pred, average='binary'))
+print("F1: ", f1_score(Y_test, Y_pred, average='binary'))
 
 # Measuring precision score
 from sklearn.metrics import precision_score
-print(precision_score(Y_test, Y_pred, average='binary'))
+print("Precison: ", precision_score(Y_test, Y_pred, average='binary'))
 
 # Measuring recall score
 from sklearn.metrics import recall_score
-print(recall_score(Y_test, Y_pred, average='binary'))
+print("Recall: ", recall_score(Y_test, Y_pred, average='binary'))
