@@ -25,9 +25,11 @@ for i in range(0,97734):
     
 # Creating the Bag of Words model
 from sklearn.feature_extraction.text import CountVectorizer
-cv = CountVectorizer(max_features=90000)
+cv = CountVectorizer(analyzer='char', ngram_range=(2, 2)) #bigram initialization
+print("Bigram Model")
 X = cv.fit_transform(corpus).toarray()
 Y = dataset.iloc[:,1].values
+print(X.shape)
 
 # Spliting the dataset into the Training and Test Set
 from sklearn.model_selection import train_test_split
@@ -35,21 +37,21 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.25, rand
 
 # Fitting the dataset into the Training set (Implementing Decison Tree)
 from sklearn import tree
-decision_tree_classifier = tree.DecisionTreeClassifier()
-decision_tree_classifier = decision_tree_classifier.fit(X_train, Y_train)
-print("Decision Tree Classifier | Bag of Words Model")
+classifier = tree.DecisionTreeClassifier()
+classifier = classifier.fit(X_train, Y_train)
+print("Decision Tree Classifier")
 
 # Fitting the dataset into the Training set (Implementing Naive Bayes Tree)
 from sklearn.naive_bayes import GaussianNB
-naive_bayes_classifier = GaussianNB()
-naive_bayes_classifier.fit(X_train, Y_train)
-print("Naive Bayes | Bag of Words Model")
+classifier = GaussianNB()
+classifier = classifier.fit(X_train, Y_train)
+print("Naive Bayes")
 
 # Fitting the dataset into the Trainig set (Implementing Random Forest)
 from sklearn.ensemble import RandomForestRegressor
-regressor = RandomForestRegressor(n_estimators = 10000, random_state = 0)
-regressor.fit(X_train, Y_train)
-print("Random Forest | Bag of Words Model")
+classifier = RandomForestRegressor(n_estimators = 100, random_state = 0)
+classifier.fit(X_train, Y_train)
+print("Random Forest")
 
 
 # ------ Evaluation -------

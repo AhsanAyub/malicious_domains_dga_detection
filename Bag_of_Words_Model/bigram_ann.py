@@ -9,47 +9,67 @@ __status__ = "Prototype"
 # Importing the libraries
 import pandas as pd
 
+# Disabling Tensorflow warning, doesn't enable AVX/FMA
+#import os
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 #importing the data set
 dataset = pd.read_csv('sample_production_data_97K.csv')
 print(dataset.head())
+print("Bigram | ANN | Size of the Dataset ", len(dataset))
+
+# ------ Processing the Data -------
 
 # Processing the domain names (text)
 import re
 corpus = []
 for i in range(0,97734):
-    domains = re.sub('[.]', ' ', dataset['Domain'][i])
+    domains = re.sub('[.]', ' ', dataset['Domain'][i]);
     domains = domains.lower()
     domains = domains.split()
     domains = ' '.join(domains)
     corpus.append(domains)
+print("Done with creating corpus")
     
 # Creating the Bag of Words model
 from sklearn.feature_extraction.text import CountVectorizer
-cv = CountVectorizer(max_features=90000)
+cv = CountVectorizer(analyzer='char', ngram_range=(2, 2))
 X = cv.fit_transform(corpus).toarray()
 Y = dataset.iloc[:,1].values
+print("Done with creating X and Y")
+obs, feats = X.shape
 
 # Spliting the dataset into the Training and Test Set
 from sklearn.model_selection import train_test_split
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.25, random_state = 0)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state = 0)
+print("Dataset are split into Training and Test")
 
-# Fitting the dataset into the Training set (Implementing Decison Tree)
-from sklearn import tree
-decision_tree_classifier = tree.DecisionTreeClassifier()
-decision_tree_classifier = decision_tree_classifier.fit(X_train, Y_train)
-print("Decision Tree Classifier | Bag of Words Model")
+# ------ Making the ANN model -------
 
-# Fitting the dataset into the Training set (Implementing Naive Bayes Tree)
-from sklearn.naive_bayes import GaussianNB
-naive_bayes_classifier = GaussianNB()
-naive_bayes_classifier.fit(X_train, Y_train)
-print("Naive Bayes | Bag of Words Model")
+# Importing the Keras libraries and packages
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+print("Keras libraries are imported")
 
-# Fitting the dataset into the Trainig set (Implementing Random Forest)
-from sklearn.ensemble import RandomForestRegressor
-regressor = RandomForestRegressor(n_estimators = 10000, random_state = 0)
-regressor.fit(X_train, Y_train)
-print("Random Forest | Bag of Words Model")
+# Initializing the ANN
+classifier = Sequential()
+
+# Adding the input layer and the first hidden layer
+classifier.add(Dense(output_dim = round(feats/2), init =  'uniform', activation = 'relu', input_dim = feats))
+
+# Adding the second hidden layer
+classifier.add(Dense(output_dim = round(feats/2), init =  'uniform', activation = 'relu'))
+
+# Adding the output layer
+classifier.add(Dense(output_dim = 1, init =  'uniform', activation = 'sigmoid'))
+
+# Compiling the ANN
+classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+
+print("All set for EPOCHS")
+# Fitting the ANN to the Training set
+classifier.fit(X_train, Y_train, batch_size = 32, epochs = 10)
 
 
 # ------ Evaluation -------
