@@ -12,7 +12,7 @@ import numpy as np
 import gensim
 
 #importing the data set
-dataset = pd.read_csv('D:/Utilities/testbed/malicious_domains_dga/Dataset/sample_production_data_97K.csv')
+dataset = pd.read_csv('sample_production_data_97K.csv')
 
 
 # ------ Processing the Data -------
