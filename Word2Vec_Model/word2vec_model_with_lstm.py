@@ -12,7 +12,7 @@ import numpy as np
 import gensim
 
 #importing the data set
-dataset = pd.read_csv('sample_production_data_97K.csv')
+dataset = pd.read_csv('D:/Utilities/testbed/malicious_domains_dga/Dataset/sample_production_data_97K.csv')
 
 
 # ------ Processing the Data -------
@@ -36,7 +36,7 @@ for i in range(0,number_of_obs):
 # Creating the Word2Vec model
 word_model = gensim.models.Word2Vec(corpus, min_count=1, size=100, 
                                     window=number_of_words, sg = 1, iter=10)
-pretrained_weights = word_model.wv.syn0
+pretrained_weights = word_model.wv.vectors
 vocab_size, emdedding_size = pretrained_weights.shape
 
 
@@ -56,7 +56,7 @@ for i, sentence in enumerate(corpus):
   
 # Spliting the dataset into the Training and Test Set
 from sklearn.model_selection import train_test_split
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state = 0)
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42, stratify=Y)
 
 
 # ------ Making the LSTM model -------
@@ -64,8 +64,9 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, rando
 # Importing the Keras libraries and packages
 from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
-from keras.layers import Dense, Activation
+from keras.layers import Dense, Activation, Dropout
 from keras.models import Sequential
+from keras.callbacks import EarlyStopping
 
 # Initializing the classifer
 classifier = Sequential()
@@ -74,22 +75,33 @@ classifier = Sequential()
 classifier.add(Embedding(input_dim=vocab_size, output_dim=emdedding_size, weights=[pretrained_weights]))
 
 # Adding the LSTM
-classifier.add(LSTM(units=emdedding_size,activation='relu'))
+classifier.add(LSTM(units=emdedding_size,activation='relu', recurrent_dropout=0.5, dropout=0.8))
+classifier.add(Dropout(0.8))
 classifier.add(Dense(units=vocab_size))
 classifier.add(Activation('softmax'))
 
 # Compiling the LSTM
 classifier.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics = ['accuracy'])
 
+# Callback to stop if validation loss does not decrease
+callbacks = [EarlyStopping(monitor='val_loss', patience=2)]
+
 # Fitting the LSTM to the Training set
-classifier.fit(X_train, Y_train, batch_size = 32, epochs = 10)
+history = classifier.fit(X_train, 
+               Y_train,
+               callbacks=callbacks,
+               validation_split=0.2,
+               batch_size = 64, 
+               epochs = 5,
+               shuffle=True)
 
 
 # ------ Evaluation -------
 
 # Predicting the Test set results
-Y_pred = classifier.predict(X_test)
-Y_pred = (Y_pred > 0.5)
+Y_pred = classifier.predict_classes(X_test)
+results = pd.DataFrame({'actual':Y_test, 'predicted':Y_pred})
+results.to_csv("results.csv", index=False)
 
 # Making the cufusion Matrix
 from sklearn.metrics import confusion_matrix
