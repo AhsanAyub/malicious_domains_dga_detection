@@ -97,43 +97,48 @@ def retrieveTLD (url):
 processedData = []
 
 #importing the data set
-dataset = pd.read_csv('banjori_dga.csv')
+dataset = pd.read_csv('../../bobax_dga.csv')
 print(dataset.head())
 
 # VirusTotal API request URL
 url = 'https://www.virustotal.com/vtapi/v2/url/report'
 
 # Generating the processed dataset
-for i in range(5000,6001):
+#for i in range(1813,2942):
+for i in range(260):
     scan_url = dataset['domain'][i]
     scan_url = scan_url.lower()
     print(scan_url)
     params = {'apikey': 'api_key', 'resource':scan_url}
     
-    response = requests.get(url, params=params)
+    try:
+        response = requests.get(url, params=params)
     
-    #the request was correctly handled by the server and no errors were produced
-    if response.status_code == 200:    
-        json_data = response.json()
+        #the request was correctly handled by the server and no errors were produced
+        if response.status_code == 200:    
+            json_data = response.json()
+            
+            # If the item you searched for was not present in VirusTotal's dataset this result will be 0
+            if json_data['response_code'] == 0:
+                processedData.append([scan_url, 0, isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), 1])
+                
+            else:
+                processedData.append([scan_url, VT_scan(json_data), isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), 1])
         
-        # If the item you searched for was not present in VirusTotal's dataset this result will be 0
-        if json_data['response_code'] == 0:
-            processedData.append([scan_url, 0, isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), 1])
+        #Request rate limit exceeded. You are making more requests than allowed. You have exceeded one of your quotas (minute, daily or monthly).
+        elif response.status_code == 204:
+            print("Putting to sleep for 56 seconds")
+            time.sleep(56)
+            print("Back from sleep")
             
         else:
-            processedData.append([scan_url, VT_scan(json_data), isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), 1])
-    
-    #Request rate limit exceeded. You are making more requests than allowed. You have exceeded one of your quotas (minute, daily or monthly).
-    elif response.status_code == 204:
-        print("Putting to sleep for 56 seconds")
-        time.sleep(56)
-        print("Back from sleep")
-        
-    else:
-        continue
+            print("Error in response")
+            continue
+    except:
+        print("Something went wrong")
 
 # Create the pandas DataFrame 
 df = pd.DataFrame(processedData, columns = ['domain', 'VT_scan', 'isNXDomain', 'perNumChars', 'VtoC', 'lenDomain', 'SymToChar', 'TLD', 'class'])
 
 # Convert the data into csv
-pd.DataFrame(df).to_csv("bamital_dga_processed.csv")
+pd.DataFrame(df).to_csv("bobax_dga_processed.csv")
