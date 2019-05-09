@@ -6,14 +6,14 @@ __maintainer__ = "Md. Ahsan Ayub"
 __email__ = "mayub42@students.tntech.edu"
 __status__ = "Prototype"
 
-# Import pandas library 
+# Import libraries 
 import pandas as pd
 import requests
 import time
 import socket
 import re
 
-# The function to generate the scan result
+# The function to generate the VirusTotal scan result
 def VT_scan (json_data):
     
     VT_scan_result = 1
@@ -97,15 +97,15 @@ def retrieveTLD (url):
 processedData = []
 
 #importing the data set
-dataset = pd.read_csv('../../bobax_dga.csv')
+dataset = pd.read_csv('../../cryptolocker_dga.csv')
 print(dataset.head())
 
 # VirusTotal API request URL
 url = 'https://www.virustotal.com/vtapi/v2/url/report'
 
 # Generating the processed dataset
-#for i in range(1813,2942):
-for i in range(260):
+for i in range(51813,55942):
+#for i in range(98):
     scan_url = dataset['domain'][i]
     scan_url = scan_url.lower()
     print(scan_url)
@@ -136,9 +136,10 @@ for i in range(260):
             continue
     except:
         print("Something went wrong")
-
+    
+    
 # Create the pandas DataFrame 
 df = pd.DataFrame(processedData, columns = ['domain', 'VT_scan', 'isNXDomain', 'perNumChars', 'VtoC', 'lenDomain', 'SymToChar', 'TLD', 'class'])
 
 # Convert the data into csv
-pd.DataFrame(df).to_csv("bobax_dga_processed.csv")
+pd.DataFrame(df).to_csv("cryptolocker_dga_processed.csv")
