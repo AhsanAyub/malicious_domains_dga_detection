@@ -16,12 +16,12 @@ import re
 # The function to generate the scan result
 def VT_scan (json_data):
     
-    VT_scan_result = 0
+    VT_scan_result = 1
     
     for scan_result in json_data['scans']:
         for result in json_data['scans'][scan_result]:
             if json_data['scans'][scan_result][result] == True:
-                VT_scan_result = 1
+                VT_scan_result = 2
     
     return VT_scan_result
 
@@ -104,11 +104,11 @@ print(dataset.head())
 url = 'https://www.virustotal.com/vtapi/v2/url/report'
 
 # Generating the processed dataset
-for i in range(3):
+for i in range(0, 2000, 2):
     scan_url = dataset['domain'][i]
     scan_url = scan_url.lower()
     print(scan_url)
-    params = {'apikey': '<apu_key>', 'resource':scan_url}
+    params = {'apikey': 'api_key', 'resource':scan_url}
     
     response = requests.get(url, params=params)
     
@@ -118,22 +118,22 @@ for i in range(3):
         
         # If the item you searched for was not present in VirusTotal's dataset this result will be 0
         if json_data['response_code'] == 0:
-            processedData.append([scan_url, 0, isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url)])
+            processedData.append([scan_url, 0, isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), 1])
             
         else:
-            processedData.append([scan_url, VT_scan(json_data), isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url)])
+            processedData.append([scan_url, VT_scan(json_data), isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), 1])
     
     #Request rate limit exceeded. You are making more requests than allowed. You have exceeded one of your quotas (minute, daily or monthly).
     elif response.status_code == 204:
-        print("Putting to sleep for 60 seconds")
-        time.sleep(60)
+        print("Putting to sleep for 56 seconds")
+        time.sleep(56)
         print("Back from sleep")
         
     else:
         continue
 
 # Create the pandas DataFrame 
-df = pd.DataFrame(processedData, columns = ['domain', 'VT_scan', 'isNXDomain', 'perNumChars', 'VtoC', 'lenDomain', 'SymToChar', 'TLD'])
+df = pd.DataFrame(processedData, columns = ['domain', 'VT_scan', 'isNXDomain', 'perNumChars', 'VtoC', 'lenDomain', 'SymToChar', 'TLD', 'class'])
 
 # Convert the data into csv
 pd.DataFrame(df).to_csv("bamital_dga_processed.csv")
