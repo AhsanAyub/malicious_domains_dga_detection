@@ -97,18 +97,21 @@ def retrieveTLD (url):
 processedData = []
 
 #importing the data set
-dataset = pd.read_csv('../../gameover_p2p.csv')
+dataset = pd.read_csv('../../necurs_dga.csv')
 print(dataset.head())
+
+family_id = 38
+class_id = 1
 
 # VirusTotal API request URL
 url = 'https://www.virustotal.com/vtapi/v2/url/report'
 
 # Generating the processed dataset
-#for i in range(2740,4142):
-for i in range(2000):
+for i in range(2740,6940):
+#for i in range(200):
     scan_url = dataset['domain'][i]
     scan_url = scan_url.lower()
-    print(scan_url)
+    print(scan_url , "\t",  i)
     params = {'apikey': 'api_key', 'resource':scan_url}
     
     try:
@@ -120,15 +123,15 @@ for i in range(2000):
             
             # If the item you searched for was not present in VirusTotal's dataset this result will be 0
             if json_data['response_code'] == 0:
-                processedData.append([scan_url, 0, isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), 1])
+                processedData.append([scan_url, 0, isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), family_id, class_id])
                 
             else:
-                processedData.append([scan_url, VT_scan(json_data), isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), 1])
+                processedData.append([scan_url, VT_scan(json_data), isNXDomain(scan_url), round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), family_id, class_id])
         
         #Request rate limit exceeded. You are making more requests than allowed. You have exceeded one of your quotas (minute, daily or monthly).
         elif response.status_code == 204:
-            print("Putting to sleep for 56 seconds")
-            time.sleep(56)
+            print("Putting to sleep for 40 seconds")
+            time.sleep(40)
             print("Back from sleep")
             
         else:
@@ -139,7 +142,7 @@ for i in range(2000):
     
     
 # Create the pandas DataFrame 
-df = pd.DataFrame(processedData, columns = ['domain', 'VT_scan', 'isNXDomain', 'perNumChars', 'VtoC', 'lenDomain', 'SymToChar', 'TLD', 'class'])
+df = pd.DataFrame(processedData, columns = ['domain', 'VT_scan', 'isNXDomain', 'perNumChars', 'VtoC', 'lenDomain', 'SymToChar', 'TLD', 'family_id', 'class'])
 
 # Convert the data into csv
-pd.DataFrame(df).to_csv("gameover_p2p_dga_processed.csv")
+pd.DataFrame(df).to_csv("necurs_dic_dga_processed.csv")
