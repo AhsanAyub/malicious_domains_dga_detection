@@ -112,7 +112,7 @@ for i in range(2740,6940):
     scan_url = dataset['domain'][i]
     scan_url = scan_url.lower()
     print(scan_url , "\t",  i)
-    params = {'apikey': 'api_key', 'resource':scan_url}
+    params = {'apikey': 'f429b594917f733ec948e2966b6203fe57a5484e1d4a8a961e2c6b1b323294e5', 'resource':scan_url}
     
     try:
         response = requests.get(url, params=params)
