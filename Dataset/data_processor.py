@@ -97,18 +97,18 @@ def retrieveTLD (url):
 processedData = []
 
 #importing the data set
-dataset = pd.read_csv('../../suppobox_dga.csv')
+dataset = pd.read_csv('../../bamital_dga.csv')
 print(dataset.head())
 
-family_id = 62
+family_id = 1
 class_id = 1
 
 # VirusTotal API request URL
 url = 'https://www.virustotal.com/vtapi/v2/url/report'
 
 # Generating the processed dataset
-#for i in range(2740,3940):
-for i in range(12000, 16000):
+for i in range(3740,4740):
+#for i in range(3500):
     scan_url = dataset['domain'][i]
     scan_url = scan_url.lower()
     print(scan_url , "\t",  i)
@@ -145,4 +145,4 @@ for i in range(12000, 16000):
 df = pd.DataFrame(processedData, columns = ['domain', 'VT_scan', 'isNXDomain', 'perNumChars', 'VtoC', 'lenDomain', 'SymToChar', 'TLD', 'family_id', 'class'])
 
 # Convert the data into csv
-pd.DataFrame(df).to_csv("suppobox_dic_dga_processed.csv")
+pd.DataFrame(df).to_csv("bamital_dga_processed1.csv")
