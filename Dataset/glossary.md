@@ -25,4 +25,4 @@ Class (Int):		The binary class label for malicious dataset
 ```
 
 ### Master Dataset
-There is a csv file, `master_dataset.csv` that has got all the combined records from every file.
+There is a csv file, `master_dataset.csv` that has got the combined records from every file.
