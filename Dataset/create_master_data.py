@@ -2,7 +2,7 @@ import os
 import glob
 import pandas as pd
 
-os.chdir("/Users/ahsanayub/Documents/Reseach/Scholarly Papers/Malware Generated Domains/malicious_domains_dga/Dataset")
+os.chdir("<dir_path>")
 
 extension = 'csv'
 all_filenames = [i for i in glob.glob('*.{}'.format(extension))]
