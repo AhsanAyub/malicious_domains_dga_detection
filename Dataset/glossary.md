@@ -4,7 +4,7 @@ This folder contains all the dataset files that are used in this project. The fi
 
 ### Dataset Information
 
-The malicious dataset contains the keyword 'dga' in the name of the file while the name of the benign dataset is `ground_truth_data_processed.csv`. Each file has the following features -
+There are in total 83 different malware families datasets available in the directory. The malicious dataset contains the keyword 'dga' in the name of the file while the name of the benign dataset is `ground_truth_data_processed.csv`. Each file has the following features -
 
 ```
 Domain (String):	The whole string of the URL
