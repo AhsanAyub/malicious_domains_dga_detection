@@ -69,8 +69,11 @@ def VowelToConsonant (url):
             continue
         else:   # for all the non-alphabetic letters
             continue
-        
-    return ((vowel_count * 100)/consonant_count)
+    
+    if consonant_count != 0:    
+        return ((vowel_count * 100)/consonant_count)
+    else:
+        return 100
 
 # Compute Symbol to Character ratio
 def SymboltoCharacter (url):
@@ -84,7 +87,10 @@ def SymboltoCharacter (url):
         else:
             symbol_count += 1
         
-    return ((symbol_count * 100)/char_count)
+    if char_count != 0:
+        return ((symbol_count * 100)/char_count)
+    else:
+        return 100
     
 # Retrieve the Top Level Domains
 def retrieveTLD (url):
@@ -97,23 +103,25 @@ def retrieveTLD (url):
 processedData = []
 
 #importing the data set
-dataset = pd.read_csv('../../gameover_dga.csv')
+dataset = pd.read_csv('../../majestic_million.csv')
 print(dataset.head())
 
-family_id = 24
-class_id = 1
+family_id = 0
+class_id = 0
 
 # VirusTotal API request URL
 url = 'https://www.virustotal.com/vtapi/v2/url/report'
 
 # Generating the processed dataset
 #for i in range(3740,4740):
-for i in range(8500):
+for i in range(125000):
     scan_url = dataset['domain'][i]
     scan_url = scan_url.lower()
     print(scan_url , "\t",  i)
     params = {'apikey': 'api_key', 'resource':scan_url}
     
+    processedData.append([scan_url, 1, 1, round(numericCharacters(scan_url)), round(VowelToConsonant(scan_url)), len(scan_url), round(SymboltoCharacter(scan_url)), retrieveTLD(scan_url), family_id, class_id])
+   
     try:
         response = requests.get(url, params=params)
     
@@ -145,4 +153,4 @@ for i in range(8500):
 df = pd.DataFrame(processedData, columns = ['domain', 'VT_scan', 'isNXDomain', 'perNumChars', 'VtoC', 'lenDomain', 'SymToChar', 'TLD', 'family_id', 'class'])
 
 # Convert the data into csv
-pd.DataFrame(df).to_csv("gameover_dga_processed.csv")
+pd.DataFrame(df).to_csv("ground_truth_data_processed.csv")
