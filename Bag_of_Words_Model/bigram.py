@@ -6,6 +6,68 @@ __maintainer__ = "Md. Ahsan Ayub"
 __email__ = "mayub42@students.tntech.edu"
 __status__ = "Prototype"
 
+
+# Modular function to apply decision tree classifier
+def LR_classifier(X, Y, numFold):
+    
+    # Intilization of the figure
+    myFig = plt.figure(figsize=[12,10])
+    
+    # Stratified K-Folds cross-validator
+    cv = StratifiedKFold(n_splits=numFold,random_state=None, shuffle=False)
+    
+    # Initialization of the logistic regression classifier
+    classifier = LogisticRegression(random_state=0)
+    
+    tprs = []
+    aucs = []
+    mean_fpr = np.linspace(0, 1, 100)
+    
+    i = 1
+    for train, test in cv.split(X, Y):
+        X_train, X_test, Y_train, Y_test = X[train], X[test], Y[train], Y[test]
+        probas_ = classifier.fit(X_train, Y_train).predict_proba(X_test)
+        fpr, tpr, thresholds = roc_curve(Y_test, probas_[:, 1])
+        tprs.append(interp(mean_fpr, fpr, tpr))
+        tprs[-1][0] = 0.0
+        roc_auc = auc(fpr, tpr)
+        aucs.append(roc_auc)
+        plt.plot(fpr, tpr, lw=1, color='black', alpha=0.5,
+                 label='ROC fold %d (AUC = %0.3f)' % (i, roc_auc))
+        print("Iteration ongoing inside LR method - KFold step: ", i)
+        i += 1
+        
+    plt.plot([0,1],[0,1],linestyle = '--',lw = 1, alpha=0.5, color = 'black')
+    
+    mean_tpr = np.mean(tprs, axis=0)
+    mean_tpr[-1] = 1.0
+    mean_auc = auc(mean_fpr, mean_tpr)
+    plt.plot(mean_fpr, mean_tpr, color='black',
+             label=r'Mean ROC (AUC = %0.3f)' % (mean_auc),
+             lw=2, alpha=0.8)
+    
+    plt.xlim([-0.05, 1.05])
+    plt.ylim([-0.05, 1.05])
+    plt.xlabel('False Positive Rate', fontsize=18, weight='bold')
+    plt.ylabel('True Positive Rate', fontsize=18, weight='bold')
+    plt.title('Receiver Operating Characteristic (ROC) Curve\Logistic Regression with Bigram Model', fontsize=20, fontweight='bold')
+    plt.legend(loc="lower right",fontsize=14)
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    fileName = 'Logistic_Regression_ROC_' + str(numFold) + '_Fold.eps'
+    # Saving the figure
+    myFig.savefig(fileName, format='eps', dpi=1200)
+    
+    # Statistical measurement of the model
+    results = cross_validate(estimator=classifier,
+                             X=X_test,
+                             y=Y_test,
+                             cv=cv,
+                             scoring=scoring)
+    print("Logistic Regression Classifier results\n", results)
+
 # Modular function to apply decision tree classifier
 def DT_classifier(X, Y, numFold):
     
@@ -204,6 +266,7 @@ from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall
 
 from sklearn import tree
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LogisticRegression
 
 # Importing the Keras libraries and packages
 from keras.models import Sequential
@@ -263,6 +326,10 @@ scoring = {'accuracy' : make_scorer(accuracy_score),
            'precision' : make_scorer(precision_score),
            'recall' : make_scorer(recall_score), 
            'f1_score' : make_scorer(f1_score)}
+
+# Calling the logistic regression classifier for binary classification with
+# 5-fold cross validation
+LR_classifier(X, Y_class, 5)
 
 # Calling the decision tree classifier for binary classification with
 # 5-fold cross validation
