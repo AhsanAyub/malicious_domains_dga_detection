@@ -77,7 +77,7 @@ def RF_classifier(X, Y, numFold):
     cv = StratifiedKFold(n_splits=numFold,random_state=None, shuffle=False)
     
     # Initialization of the random forest classifier
-    classifier = RandomForestRegressor(n_estimators = 100, random_state = 0)
+    classifier = RandomForestRegressor(n_estimators = 1, random_state = 0)
     
     tprs = []
     aucs = []
@@ -127,7 +127,70 @@ def RF_classifier(X, Y, numFold):
                              cv=cv,
                              scoring=scoring)
     print("Random Forest Classifier results\n", results)
+    
+# Modular function to apply artificial neural network 
+def ANN_classifier(X, Y, batchSize, epochCount):
+    
+    # Spliting the dataset into the Training and Test Set
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42, stratify=Y)
+    
+    # Initializing the ANN
+    classifier = Sequential()
+    
+    # Adding the input layer and the first hidden layer
+    classifier.add(Dense(output_dim = round(X.shape[1]/2), init =  'uniform', activation = 'relu', input_dim = X.shape[1]))
+    
+    # Adding the second hidden layer
+    classifier.add(Dense(output_dim = round(X.shape[1]/2), init =  'uniform', activation = 'relu'))
+    
+    # Adding the output layer
+    classifier.add(Dense(output_dim = 1, init =  'uniform', activation = 'sigmoid'))
+    
+    # Compiling the ANN
+    classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+    
+    # Callback to stop if validation loss does not decrease
+    callbacks = [EarlyStopping(monitor='val_loss', patience=2)]
 
+    # Fitting the ANN to the Training set
+    classifier.fit(X_train,
+                   Y_train,
+                   callbacks=callbacks,
+                   validation_split=0.2,
+                   batch_size = batchSize,
+                   epochs = epochCount,
+                   shuffle=True)
+    
+    # ------ Evaluation -------
+
+    print("ANN using Bigram Model")
+        
+    # Predicting the Test set results
+    Y_pred = classifier.predict_classes(X_test)
+    Y_pred = (Y_pred > 0.5)
+    
+    # Making the cufusion Matrix
+    from sklearn.metrics import confusion_matrix
+    cm = confusion_matrix(Y_test, Y_pred)
+    print("Confusion Matrix:\n", cm)
+    
+    # Knowing accuracy result
+    from sklearn.metrics import accuracy_score
+    print("Accuracy: ", accuracy_score(Y_test, Y_pred))
+    
+    # Measiring F1 Score
+    from sklearn.metrics import f1_score
+    print("F1: ", f1_score(Y_test, Y_pred, average='binary'))
+    
+    # Measuring precision score
+    from sklearn.metrics import precision_score
+    print("Precison: ", precision_score(Y_test, Y_pred, average='binary'))
+    
+    # Measuring recall score
+    from sklearn.metrics import recall_score
+    print("Recall: ", recall_score(Y_test, Y_pred, average='binary'))
+    
 
 # Importing the libraries
 import pandas as pd
@@ -141,6 +204,11 @@ from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall
 
 from sklearn import tree
 from sklearn.ensemble import RandomForestRegressor
+
+# Importing the Keras libraries and packages
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.callbacks import EarlyStopping
 
 #importing the data set
 dataset = pd.read_csv('Dataset/master_dataset.csv', sep='\t')
@@ -203,3 +271,6 @@ DT_classifier(X, Y_class, 5)
 # Calling the random forest classifier for binary classification with
 # 5-fold cross validation
 RF_classifier(X, Y_class, 5)
+
+# Calling the ANN with batch_size 64 and epoch 1
+ANN_classifier(X, Y_class, 64, 1)
