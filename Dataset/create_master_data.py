@@ -2,10 +2,12 @@ import os
 import glob
 import pandas as pd
 
-os.chdir("<dir_path>")
+os.chdir("<dir_name>")
 
 extension = 'csv'
 all_filenames = [i for i in glob.glob('*.{}'.format(extension))]
+
+all_filenames = sorted(all_filenames)
 
 # Combine all files in the list
 master_data = pd.concat([pd.read_csv(f) for f in all_filenames])

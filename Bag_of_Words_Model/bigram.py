@@ -32,6 +32,7 @@ def LR_classifier(X, Y, numFold):
     for train, test in cv.split(X, Y):
         X_train, X_test, Y_train, Y_test = X[train], X[test], Y[train], Y[test]
         probas_ = classifier.fit(X_train, Y_train).predict_proba(X_test)
+        
         fpr, tpr, thresholds = roc_curve(Y_test, probas_[:, 1])
         tprs.append(interp(mean_fpr, fpr, tpr))
         tprs[-1][0] = 0.0
@@ -382,6 +383,10 @@ print("Data are processed and ready for classification.")
 # Calling the logistic regression classifier for binary classification with
 # 5-fold cross validation
 LR_classifier(X, Y_class, 5)
+
+# Calling the logistic regression classifier for malware family detection
+#  with 5-fold cross validation
+LR_classifier(X, Y_family, 2)
 
 # Calling the decision tree classifier for binary classification with
 # 5-fold cross validation
