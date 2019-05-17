@@ -139,7 +139,7 @@ def RF_classifier(X, Y, numFold):
     cv = StratifiedKFold(n_splits=numFold,random_state=None, shuffle=False)
     
     # Initialization of the random forest classifier
-    classifier = RandomForestRegressor(n_estimators = 1, random_state = 0)
+    classifier = RandomForestRegressor(n_estimators = 100, random_state = 0)
     
     tprs = []
     aucs = []
@@ -259,11 +259,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Libraries relevant to performance metrics
 from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import StratifiedKFold, cross_validate
 from scipy import interp
 from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall_score, f1_score
 
+# Libraries relevant to supervised learning 
 from sklearn import tree
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LogisticRegression
@@ -285,10 +287,9 @@ df = dataset.copy(deep=True)
 df = df[['TLD']]
 df = pd.get_dummies(df,prefix=['TLD'])
 
-# Concating the dataframe to main dataframe
+# Concating the one hot encodded dataframe to main dataframe
 dataset = pd.concat([dataset, df], axis=1)
 dataset = dataset.drop(columns=['TLD'])
-del df # clearing the memory
 
 # Processing the domain names (text)
 import re
@@ -316,10 +317,11 @@ X = np.column_stack([X, X_temp])
 
 # Clear the memories
 del dataset
+del df
 del X_temp
 del corpus
 
-print("Data are processed, ready for classification.")
+print("Data are processed and ready for classification.")
 
 # Intializing the scoring metrics
 scoring = {'accuracy' : make_scorer(accuracy_score),
