@@ -19,6 +19,11 @@ def LR_classifier(X, Y, numFold):
     # Initialization of the logistic regression classifier
     classifier = LogisticRegression(random_state=0)
     
+    acc_scores = []
+    precision_scores = []
+    recall_scores = []
+    f1_scores = []
+    
     tprs = []
     aucs = []
     mean_fpr = np.linspace(0, 1, 100)
@@ -31,6 +36,17 @@ def LR_classifier(X, Y, numFold):
         tprs.append(interp(mean_fpr, fpr, tpr))
         tprs[-1][0] = 0.0
         roc_auc = auc(fpr, tpr)
+        
+        # Breakdown of statistical measure based on classes
+        Y_pred = classifier.predict(X_test)
+        print(classification_report(Y_test, Y_pred, digits=4))
+        
+        # Compute the model's performance
+        acc_scores.append(accuracy_score(Y_test, Y_pred))
+        f1_scores.append(f1_score(Y_test, Y_pred, average='binary'))
+        precision_scores.append(precision_score(Y_test, Y_pred, average='binary'))
+        recall_scores.append(recall_score(Y_test, Y_pred, average='binary'))
+        
         aucs.append(roc_auc)
         plt.plot(fpr, tpr, lw=1, color='black', alpha=0.5,
                  label='ROC fold %d (AUC = %0.3f)' % (i, roc_auc))
@@ -50,7 +66,7 @@ def LR_classifier(X, Y, numFold):
     plt.ylim([-0.05, 1.05])
     plt.xlabel('False Positive Rate', fontsize=18, weight='bold')
     plt.ylabel('True Positive Rate', fontsize=18, weight='bold')
-    plt.title('Receiver Operating Characteristic (ROC) Curve\Logistic Regression with Bigram Model', fontsize=20, fontweight='bold')
+    plt.title('Receiver Operating Characteristic (ROC) Curve\nLogistic Regression with Bigram Model', fontsize=20, fontweight='bold')
     plt.legend(loc="lower right",fontsize=14)
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
@@ -60,14 +76,18 @@ def LR_classifier(X, Y, numFold):
     # Saving the figure
     myFig.savefig(fileName, format='eps', dpi=1200)
     
+    
     # Statistical measurement of the model
-    results = cross_validate(estimator=classifier,
-                             X=X_test,
-                             y=Y_test,
-                             cv=cv,
-                             scoring=scoring)
-    print("Logistic Regression Classifier results\n", results)
-
+    print("Accuracy: ", np.mean(acc_scores))
+    print(acc_scores)
+    print("Precision: ", np.mean(precision_scores))
+    print(precision_scores)
+    print("Recall: ", np.mean(recall_scores))
+    print(recall_scores)
+    print("F1: ", np.mean(f1_scores))
+    print(f1_scores)
+    
+    
 # Modular function to apply decision tree classifier
 def DT_classifier(X, Y, numFold):
     
@@ -79,6 +99,11 @@ def DT_classifier(X, Y, numFold):
     
     # Initialization of the decision tree classifier
     classifier = tree.DecisionTreeClassifier()
+    
+    acc_scores = []
+    precision_scores = []
+    recall_scores = []
+    f1_scores = []
     
     tprs = []
     aucs = []
@@ -92,6 +117,17 @@ def DT_classifier(X, Y, numFold):
         tprs.append(interp(mean_fpr, fpr, tpr))
         tprs[-1][0] = 0.0
         roc_auc = auc(fpr, tpr)
+        
+        # Breakdown of statistical measure based on classes
+        Y_pred = classifier.predict(X_test)
+        print(classification_report(Y_test, Y_pred, digits=4))
+        
+        # Compute the model's performance
+        acc_scores.append(accuracy_score(Y_test, Y_pred))
+        f1_scores.append(f1_score(Y_test, Y_pred, average='binary'))
+        precision_scores.append(precision_score(Y_test, Y_pred, average='binary'))
+        recall_scores.append(recall_score(Y_test, Y_pred, average='binary'))
+        
         aucs.append(roc_auc)
         plt.plot(fpr, tpr, lw=1, color='black', alpha=0.5,
                  label='ROC fold %d (AUC = %0.3f)' % (i, roc_auc))
@@ -122,12 +158,14 @@ def DT_classifier(X, Y, numFold):
     myFig.savefig(fileName, format='eps', dpi=1200)
     
     # Statistical measurement of the model
-    results = cross_validate(estimator=classifier,
-                             X=X_test,
-                             y=Y_test,
-                             cv=cv,
-                             scoring=scoring)
-    print("Decision Tree Classifier results\n", results)
+    print("Accuracy: ", np.mean(acc_scores))
+    print(acc_scores)
+    print("Precision: ", np.mean(precision_scores))
+    print(precision_scores)
+    print("Recall: ", np.mean(recall_scores))
+    print(recall_scores)
+    print("F1: ", np.mean(f1_scores))
+    print(f1_scores)
 
 # Modular function to apply decision tree classifier
 def RF_classifier(X, Y, numFold):
@@ -141,6 +179,11 @@ def RF_classifier(X, Y, numFold):
     # Initialization of the random forest classifier
     classifier = RandomForestRegressor(n_estimators = 100, random_state = 0)
     
+    acc_scores = []
+    precision_scores = []
+    recall_scores = []
+    f1_scores = []
+    
     tprs = []
     aucs = []
     mean_fpr = np.linspace(0, 1, 100)
@@ -153,6 +196,17 @@ def RF_classifier(X, Y, numFold):
         tprs.append(interp(mean_fpr, fpr, tpr))
         tprs[-1][0] = 0.0
         roc_auc = auc(fpr, tpr)
+        
+        # Breakdown of statistical measure based on classes
+        Y_pred = classifier.predict(X_test)
+        print(classification_report(Y_test, Y_pred, digits=4))
+        
+        # Compute the model's performance
+        acc_scores.append(accuracy_score(Y_test, Y_pred))
+        f1_scores.append(f1_score(Y_test, Y_pred, average='binary'))
+        precision_scores.append(precision_score(Y_test, Y_pred, average='binary'))
+        recall_scores.append(recall_score(Y_test, Y_pred, average='binary'))
+        
         aucs.append(roc_auc)
         plt.plot(fpr, tpr, lw=1, color='black', alpha=0.5,
                  label='ROC fold %d (AUC = %0.3f)' % (i, roc_auc))
@@ -183,12 +237,15 @@ def RF_classifier(X, Y, numFold):
     myFig.savefig(fileName, format='eps', dpi=1200)
     
     # Statistical measurement of the model
-    results = cross_validate(estimator=classifier,
-                             X=X_test,
-                             y=Y_test,
-                             cv=cv,
-                             scoring=scoring)
-    print("Random Forest Classifier results\n", results)
+    print("Accuracy: ", np.mean(acc_scores))
+    print(acc_scores)
+    print("Precision: ", np.mean(precision_scores))
+    print(precision_scores)
+    print("Recall: ", np.mean(recall_scores))
+    print(recall_scores)
+    print("F1: ", np.mean(f1_scores))
+    print(f1_scores)
+    
     
 # Modular function to apply artificial neural network 
 def ANN_classifier(X, Y, batchSize, epochCount):
@@ -260,10 +317,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Libraries relevant to performance metrics
-from sklearn.metrics import roc_curve, auc
-from sklearn.model_selection import StratifiedKFold, cross_validate
+from sklearn.metrics import roc_curve, auc, classification_report, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.model_selection import StratifiedKFold
 from scipy import interp
-from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall_score, f1_score
 
 # Libraries relevant to supervised learning 
 from sklearn import tree
@@ -322,12 +378,6 @@ del X_temp
 del corpus
 
 print("Data are processed and ready for classification.")
-
-# Intializing the scoring metrics
-scoring = {'accuracy' : make_scorer(accuracy_score),
-           'precision' : make_scorer(precision_score),
-           'recall' : make_scorer(recall_score), 
-           'f1_score' : make_scorer(f1_score)}
 
 # Calling the logistic regression classifier for binary classification with
 # 5-fold cross validation
