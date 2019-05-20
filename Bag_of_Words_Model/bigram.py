@@ -332,6 +332,7 @@ def RF_classifier(X, Y, numFold):
 # Modular function to apply artificial neural network 
 def ANN_classifier(X, Y, batchSize, epochCount):
     
+    myFig = plt.figure(figsize=[12,10])
     # Spliting the dataset into the Training and Test Set
     from sklearn.model_selection import train_test_split
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42, stratify=Y)
@@ -355,7 +356,7 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     callbacks = [EarlyStopping(monitor='val_loss', patience=2)]
 
     # Fitting the ANN to the Training set
-    classifier.fit(X_train,
+    history = classifier.fit(X_train,
                    Y_train,
                    callbacks=callbacks,
                    validation_split=0.2,
@@ -392,7 +393,22 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     from sklearn.metrics import recall_score
     print("Recall: ", recall_score(Y_test, Y_pred, average='binary'))
     
-
+    # ------------ Print Accuracy over Epoch --------------------
+    plt.plot(history.history['acc'])
+    plt.plot(history.history['val_acc'])
+    plt.title('Accuracy over Epoch', fontsize=20, weight='bold')
+    plt.ylabel('Accuracy', fontsize=18, weight='bold')
+    plt.xlabel('Epoch', fontsize=18, weight='bold')
+    plt.legend(['Train', 'Validation'], loc='lower right', fontsize=14)
+    plt.xticks(ticks=range(0, len(history.history['acc'])))
+    
+    plt.yticks(fontsize=16)
+    plt.show()
+        
+    fileName = 'ANN_Accuracy_over_Epoch.eps'
+    # Saving the figure
+    myFig.savefig(fileName, format='eps', dpi=1200)
+    
 # Importing the libraries
 import pandas as pd
 import numpy as np
@@ -414,6 +430,7 @@ from keras.layers import Dense
 from keras.callbacks import EarlyStopping
 
 #importing the data set
+# dataset = pd.read_csv('Dataset/master_dataset.csv')
 dataset = pd.read_csv('Dataset/master_dataset.csv')
 print(dataset.head())
 
