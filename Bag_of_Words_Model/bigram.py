@@ -503,10 +503,6 @@ DT_classifier(X, Y_class, 5)
 # 5-fold cross validation
 RF_classifier(X, Y_class, 5)
 
-# Calling the random forest classifier for  malware family detection with
-# 5-fold cross validation
-RF_classifier(X, Y_family, 5)
-
 # Calling the ANN with batch_size 64 and epoch 100 for binary classification
 ANN_classifier(X, Y_class, 64, 100)
 
