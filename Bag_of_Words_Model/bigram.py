@@ -332,6 +332,8 @@ def RF_classifier(X, Y, numFold):
 # Modular function to apply artificial neural network 
 def ANN_classifier(X, Y, batchSize, epochCount):
     
+    myFig = plt.figure(figsize=[12,10])
+
     # Spliting the dataset into the Training and Test Set
     from sklearn.model_selection import train_test_split
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.2, random_state = 42, stratify=Y)
@@ -355,7 +357,7 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     callbacks = [EarlyStopping(monitor='val_loss', patience=2)]
 
     # Fitting the ANN to the Training set
-    classifier.fit(X_train,
+    history = classifier.fit(X_train,
                    Y_train,
                    callbacks=callbacks,
                    validation_split=0.2,
@@ -371,6 +373,11 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     Y_pred = classifier.predict_classes(X_test)
     Y_pred = (Y_pred > 0.5)
     
+    # Breakdown of statistical measure based on classes
+    print(classification_report(Y_test, Y_pred, digits=4))
+    
+    # Compute the model's performance
+
     # Making the cufusion Matrix
     from sklearn.metrics import confusion_matrix
     cm = confusion_matrix(Y_test, Y_pred)
@@ -391,6 +398,24 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     # Measuring recall score
     from sklearn.metrics import recall_score
     print("Recall: ", recall_score(Y_test, Y_pred, average='binary'))
+    
+    # ------------ Print Accuracy over Epoch --------------------
+
+    if(len(np.unique(Y)) == 2):
+        plt.plot(history.history['acc'])
+        plt.plot(history.history['val_acc'])
+        plt.title('Accuracy over Epoch', fontsize=20, weight='bold')
+        plt.ylabel('Accuracy', fontsize=18, weight='bold')
+        plt.xlabel('Epoch', fontsize=18, weight='bold')
+        plt.legend(['Train', 'Validation'], loc='lower right', fontsize=14)
+        plt.xticks(ticks=range(0, len(history.history['acc'])))
+        
+        plt.yticks(fontsize=16)
+        plt.show()
+            
+        fileName = 'ANN_Accuracy_over_Epoch.eps'
+        # Saving the figure
+        myFig.savefig(fileName, format='eps', dpi=1200)
     
 
 # Importing the libraries
@@ -414,8 +439,9 @@ from keras.layers import Dense
 from keras.callbacks import EarlyStopping
 
 #importing the data set
-dataset = pd.read_csv('Dataset/master_dataset.csv')
+dataset = pd.read_csv('../Dataset/master_dataset.csv')
 print(dataset.head())
+
 
 # Compute the length of the dataset
 totalRecords = len(dataset.index)
@@ -477,5 +503,12 @@ DT_classifier(X, Y_class, 5)
 # 5-fold cross validation
 RF_classifier(X, Y_class, 5)
 
-# Calling the ANN with batch_size 64 and epoch 1
-ANN_classifier(X, Y_class, 64, 1)
+# Calling the random forest classifier for  malware family detection with
+# 5-fold cross validation
+RF_classifier(X, Y_family, 5)
+
+# Calling the ANN with batch_size 64 and epoch 100 for binary classification
+ANN_classifier(X, Y_class, 64, 100)
+
+# Calling the ANN with batch_size 64 and epoch 100 for multiclass detection
+ANN_classifier(X, Y_family, 64, 100)

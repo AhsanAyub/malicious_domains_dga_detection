@@ -10,7 +10,7 @@ __status__ = "Prototype"
 import pandas as pd
 
 #importing the data set
-dataset = pd.read_csv('xxhex_dga_processed.csv')
+dataset = pd.read_csv('dnschanger_dga_processed.csv')
 print(dataset.head())
 
 # Store the number of records
@@ -68,9 +68,6 @@ try:
     print('perLiveDomainRecords:\t', perLiveDomainRecords)
 except:
     print('perLiveDomainRecords:\t', 0)
-    
-# Import libraries 
-import pandas as pd
 
 # Finding unique records using group by attribute
 # complexQueryList = dataset.groupby("TLD").nunique()
