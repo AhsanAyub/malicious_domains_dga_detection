@@ -254,6 +254,7 @@ def RF_classifier(X, Y, numFold):
         
         # Breakdown of statistical measure based on classes
         Y_pred = classifier.predict(X_test)
+        Y_pred = (Y_pred > 0.5)
         print(classification_report(Y_test, Y_pred, digits=4))
         
         # Compute the model's performance
@@ -349,7 +350,7 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     
     if(len(np.unique(Y)) > 2): # Multi-classification task
         # Adding the output layer
-        classifier.add(Dense(output_dim = 1, init =  'uniform', activation = 'softmax'))
+        classifier.add(Dense(output_dim = len(np.unique(Y)), init =  'uniform', activation = 'softmax'))
         # Compiling the ANN
         classifier.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
     else: # Binary classification task
@@ -376,6 +377,7 @@ def ANN_classifier(X, Y, batchSize, epochCount):
         
     # Predicting the Test set results
     Y_pred = classifier.predict_classes(X_test)
+    Y_pred = (Y_pred > 0.5)
     
     # Breakdown of statistical measure based on classes
     print(classification_report(Y_test, Y_pred, digits=4))
@@ -392,27 +394,33 @@ def ANN_classifier(X, Y, batchSize, epochCount):
         print("Precison: ", precision_score(Y_test, Y_pred, average='binary'))
         print("Recall: ", recall_score(Y_test, Y_pred, average='binary'))
     else:
-        print("F1: ", f1_score(Y_test, Y_pred, average=None))
-        print("Precison: ", precision_score(Y_test, Y_pred, average=None))
-        print("Recall: ", recall_score(Y_test, Y_pred, average=None))
+        f1_scores = f1_score(Y_test, Y_pred, average=None)
+        print("F1: ", np.mean(f1_scores))
+        precision_scores = precision_score(Y_test, Y_pred, average=None)
+        print("Precison: ", np.mean(precision_scores))
+        recall_scores = recall_score(Y_test, Y_pred, average=None)
+        print("Recall: ", np.mean(recall_scores))
     
     # ------------ Print Accuracy over Epoch --------------------
 
-    if(len(np.unique(Y)) == 2):
-        plt.plot(history.history['acc'])
-        plt.plot(history.history['val_acc'])
-        plt.title('Accuracy over Epoch', fontsize=20, weight='bold')
-        plt.ylabel('Accuracy', fontsize=18, weight='bold')
-        plt.xlabel('Epoch', fontsize=18, weight='bold')
-        plt.legend(['Train', 'Validation'], loc='lower right', fontsize=14)
-        plt.xticks(ticks=range(0, len(history.history['acc'])))
+    plt.plot(history.history['acc'], linestyle = ':',lw = 2, alpha=0.8, color = 'black')
+    plt.plot(history.history['val_acc'], linestyle = '--',lw = 2, alpha=0.8, color = 'black')
+    plt.title('Accuracy over Epoch', fontsize=20, weight='bold')
+    plt.ylabel('Accuracy', fontsize=18, weight='bold')
+    plt.xlabel('Epoch', fontsize=18, weight='bold')
+    plt.legend(['Train', 'Validation'], loc='lower right', fontsize=14)
+    plt.xticks(ticks=range(0, len(history.history['acc'])))
+    
+    plt.yticks(fontsize=16)
+    plt.show()
         
-        plt.yticks(fontsize=16)
-        plt.show()
-            
-        fileName = 'ANN_Accuracy_over_Epoch.eps'
-        # Saving the figure
-        myFig.savefig(fileName, format='eps', dpi=1200)
+    if(len(np.unique(Y))) == 2:
+        fileName = 'ANN_Accuracy_over_Epoch_Binary_Classification.eps'
+    else:
+        fileName = 'ANN_Accuracy_over_Epoch_Multiclass_Classification.eps'
+    
+    # Saving the figure
+    myFig.savefig(fileName, format='eps', dpi=1200)
     
 
 # Importing the libraries
