@@ -347,11 +347,16 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     # Adding the second hidden layer
     classifier.add(Dense(output_dim = round(X.shape[1]/2), init =  'uniform', activation = 'relu'))
     
-    # Adding the output layer
-    classifier.add(Dense(output_dim = 1, init =  'uniform', activation = 'sigmoid'))
-    
-    # Compiling the ANN
-    classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+    if(len(np.unique(Y)) > 2): # Multi-classification task
+        # Adding the output layer
+        classifier.add(Dense(output_dim = 1, init =  'uniform', activation = 'softmax'))
+        # Compiling the ANN
+        classifier.compile(optimizer = 'adam', loss = 'sparse_categorical_crossentropy', metrics = ['accuracy'])
+    else: # Binary classification task
+        # Adding the output layer
+        classifier.add(Dense(output_dim = 1, init =  'uniform', activation = 'sigmoid'))
+        # Compiling the ANN
+        classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
     
     # Callback to stop if validation loss does not decrease
     callbacks = [EarlyStopping(monitor='val_loss', patience=2)]
@@ -371,7 +376,6 @@ def ANN_classifier(X, Y, batchSize, epochCount):
         
     # Predicting the Test set results
     Y_pred = classifier.predict_classes(X_test)
-    Y_pred = (Y_pred > 0.5)
     
     # Breakdown of statistical measure based on classes
     print(classification_report(Y_test, Y_pred, digits=4))
@@ -379,25 +383,18 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     # Compute the model's performance
 
     # Making the cufusion Matrix
-    from sklearn.metrics import confusion_matrix
     cm = confusion_matrix(Y_test, Y_pred)
     print("Confusion Matrix:\n", cm)
-    
-    # Knowing accuracy result
-    from sklearn.metrics import accuracy_score
     print("Accuracy: ", accuracy_score(Y_test, Y_pred))
     
-    # Measiring F1 Score
-    from sklearn.metrics import f1_score
-    print("F1: ", f1_score(Y_test, Y_pred, average='binary'))
-    
-    # Measuring precision score
-    from sklearn.metrics import precision_score
-    print("Precison: ", precision_score(Y_test, Y_pred, average='binary'))
-    
-    # Measuring recall score
-    from sklearn.metrics import recall_score
-    print("Recall: ", recall_score(Y_test, Y_pred, average='binary'))
+    if(len(np.unique(Y))) == 2:
+        print("F1: ", f1_score(Y_test, Y_pred, average='binary'))
+        print("Precison: ", precision_score(Y_test, Y_pred, average='binary'))
+        print("Recall: ", recall_score(Y_test, Y_pred, average='binary'))
+    else:
+        print("F1: ", f1_score(Y_test, Y_pred, average=None))
+        print("Precison: ", precision_score(Y_test, Y_pred, average=None))
+        print("Recall: ", recall_score(Y_test, Y_pred, average=None))
     
     # ------------ Print Accuracy over Epoch --------------------
 
@@ -424,7 +421,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Libraries relevant to performance metrics
-from sklearn.metrics import roc_curve, auc, classification_report, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import roc_curve, auc, confusion_matrix, classification_report, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import StratifiedKFold
 from scipy import interp
 
