@@ -405,7 +405,7 @@ def ANN_classifier(X, Y, batchSize, epochCount):
 
     plt.plot(history.history['acc'], linestyle = ':',lw = 2, alpha=0.8, color = 'black')
     plt.plot(history.history['val_acc'], linestyle = '--',lw = 2, alpha=0.8, color = 'black')
-    plt.title('Accuracy over Epoch', fontsize=20, weight='bold')
+    plt.title('Accuracy over Epoch\nANN', fontsize=20, weight='bold')
     plt.ylabel('Accuracy', fontsize=18, weight='bold')
     plt.xlabel('Epoch', fontsize=18, weight='bold')
     plt.legend(['Train', 'Validation'], loc='lower right', fontsize=14)
@@ -421,6 +421,29 @@ def ANN_classifier(X, Y, batchSize, epochCount):
     
     # Saving the figure
     myFig.savefig(fileName, format='eps', dpi=1200)
+    
+    # Clear figure
+    plt.clf()
+    if len(np.unique(Y)) == 2:
+        fpr, tpr, _ = roc_curve(Y_test, Y_prob)
+        plt.plot(fpr, tpr, color='black',
+                label=r'ROC (AUC = %0.3f)' % (auc(fpr, tpr)),
+                lw=2, alpha=0.8)
+            
+        plt.xlim([-0.05, 1.05])
+        plt.ylim([-0.05, 1.05])
+        plt.xlabel('False Positive Rate', fontsize=18, weight='bold')
+        plt.ylabel('True Positive Rate', fontsize=18, weight='bold')
+        plt.title('Receiver Operating Characteristic (ROC) Curve\nANN', fontsize=20, fontweight='bold')
+        plt.legend(loc="lower right",fontsize=14)
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+        plt.show()
+            
+        fileName = 'ANN_ROC.eps'
+        # Saving the figure
+        myFig.savefig(fileName, format='eps', dpi=1200)
+
     
 
 # Importing the libraries
