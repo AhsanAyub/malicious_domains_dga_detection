@@ -12,7 +12,7 @@ import numpy as np
 import gensim
 
 #importing the data set
-dataset = pd.read_csv('C:\\Users\\hemlo\\Downloads\\sample_production_data_97K.csv')
+dataset = pd.read_csv('D:\\Research\\malicious_domains_dga\\Dataset\\master_dataset.csv')
 print(dataset.head())
 
 
@@ -25,7 +25,7 @@ number_of_obs = len(dataset)
 corpus = []
 
 for i in range(0,number_of_obs):
-    domains = re.sub('[.]', ' ', dataset['Domain'][i]);
+    domains = re.sub('[.]', ' ', dataset['domain'][i]);
     domains = domains.lower()
     domains = domains.split()
     #domains = ' '.join(domains)
@@ -52,55 +52,77 @@ X = np.zeros([len(corpus), number_of_words], dtype=np.int32)
 for i, sentence in enumerate(corpus):
     for t, word in enumerate(sentence):
         X[i, t] = word2idx(word)
-  
+
+Y_family_id = dataset['family_id'].values
+# One Hot Encode the TLD column
+df = dataset.copy(deep=True)
+df = df[['TLD']]
+df = pd.get_dummies(df,prefix=['TLD'])
+
+# Concating the one hot encodded dataframe to main dataframe
+dataset = pd.concat([dataset, df], axis=1)
+dataset = dataset.drop(columns=['TLD', 'domain', 'class', 'family_id'])
+
+del(df)
+
+X_features = dataset.iloc[:,:].values
+#X = np.column_stack([X, X_temp])
+
 # Spliting the dataset into the Training and Test Set
-from sklearn.model_selection import train_test_split
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size = 0.3, stratify=Y)
-#X_train, X_test, Y_train, Y_test = train_test_split(X_test, Y_test, test_size = 0.2, stratify=Y_test)
+from sklearn.model_selection import StratifiedShuffleSplit
+sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2)
+for train_idx, test_idx in sss.split(X, Y):
+    X_embed_train, X_embed_test = X[train_idx], X[test_idx]
+    Y_train, Y_test = Y[train_idx], Y[test_idx]
+    X_features_train, X_features_test = X_features[train_idx], X_features[test_idx]
+
+
 
 # ------ Making the LSTM model -------
 
 # Importing the Keras libraries and packages
+import keras
 from keras.layers.recurrent import LSTM
 from keras.layers.embeddings import Embedding
-from keras.layers import Dense, Activation, Dropout, Input
+from keras.layers import Dense, Activation, Dropout, Input, Concatenate
 from keras.models import Model
 from keras.callbacks import EarlyStopping
 
 main_input = Input(shape=(number_of_words,))
 embed = Embedding(input_dim=vocab_size, output_dim=embedding_size, weights=[pretrained_weights])(main_input)
-lstm = LSTM(units=embedding_size, activation='relu', recurrent_dropout=0.3, dropout=0.3)(embed)
-#drop = Dropout(0.5)(lstm)
-hidden_1 = Dense(units=64, activation='relu')(lstm)
-dense = Dense(units=2)(hidden_1)
-activation = Activation('softmax')(dense)
-classifier = Model([main_input], activation)
+lstm = LSTM(units=embedding_size, activation='relu', recurrent_dropout=0.8, dropout=0.8)(embed)
+aux_out = Dense(1, activation='sigmoid', name='aux_out')(lstm)
+
+feature_input = Input(shape=(len(dataset.columns),), name='feature_input')
+conc = keras.layers.concatenate([lstm, feature_input])
+drop = Dropout(0.8)(conc)
 
 
-# Adding the LSTM
-#classifier.add(LSTM(units=embedding_size,activation='relu', recurrent_dropout=0.3, dropout=0.3))
-#classifier.add(Dropout(0.5))
-#classifier.add(Dense(units=1, activation='sigmoid'))
-# classifier.add(Activation('softmax'))
+dense = Dense(units=1, activation='sigmoid', name='dense')(drop)
+classifier = Model(inputs=[main_input, feature_input], outputs=[dense, aux_out])
+
 
 # Compiling the LSTM
-classifier.compile(optimizer='SGD', loss='sparse_categorical_crossentropy', metrics = ['accuracy'])
+classifier.compile(optimizer='adam', loss='binary_crossentropy', metrics = ['accuracy'])
 
 # Callback to stop if validation loss does not decrease
 callbacks = [EarlyStopping(monitor='val_loss', patience=2)]
 
 # Fitting the LSTM to the Training set
-history = classifier.fit(X_train, 
-               Y_train,
-               callbacks=callbacks,
+history = classifier.fit(
+               [X_embed_train, X_features_train], 
+               [Y_train, Y_train],
                validation_split=0.1,
-               batch_size = 64, 
-               epochs = 5,
-               shuffle=False)
+               batch_size = 128, 
+               epochs = 10,
+               shuffle=True)
 
 
 # ------ Evaluation -------
-Y_prob = classifier.predict(X_test)
+Probabilities = classifier.predict([X_embed_test, X_features_test])
+Y_prob = Probabilities[0]
+# Y_prob is a list of predictions for both output layers.  We only want the dense layer, thus we use index 0
+Y_pred = np.where(Y_prob > 0.5, 1, 0)
 # Predicting the Test set results
 #Y_pred = classifier.predict_classes(X_test)
 #results = pd.DataFrame({'actual':Y_test, 'predicted':Y_pred})
