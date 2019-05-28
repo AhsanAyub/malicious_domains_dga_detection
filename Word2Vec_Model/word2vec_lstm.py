@@ -127,7 +127,7 @@ if num_classes > 2:
     model_loss = 'sparse_categorical_crossentropy'
     graph_type = 'Multiclass'
     lr = 0.001
-    epochs = 20
+    epochs = 50
 else:
     units = 1
     activation = 'sigmoid'
@@ -136,11 +136,11 @@ else:
     lr = 0.0001,
     epochs = 10
     
-dense = Dense(units=units, activation=activation, name='dense')(hidden_1)
+dense = Dense(units=units, activation='softmax', name='dense')(hidden_1)
 # Define the model
 classifier = Model(inputs=[main_input, feature_input], outputs=[dense, aux_out])
 # Adam optimizer with lowered lr to prevent overfitting
-opt = Adam(lr=lr)
+opt = Adam(lr=0.001)
 # Compiling the LSTM
 classifier.compile(optimizer=opt, loss='sparse_categorical_crossentropy', metrics = ['accuracy'])
 print(classifier.summary())
